@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red-Black Bowling</title>
+<style>
+  :root{
+    --bg: #10151c;
+    --bg-2: #161d27;
+    --lane: #1b232f;
+    --lane-line: #2a3444;
+    --ink: #eef1f5;
+    --ink-dim: #9fb0c3;
+    --amber: #f2b807;
+    --amber-dim: #8a6a12;
+    --red: #e6484f;
+    --red-dark: #a9262b;
+    --black-pin: #232b36;
+    --black-pin-edge: #3a4658;
+    --green: #59c27a;
+    --panel-border: #2a3444;
+    --shadow: rgba(0,0,0,.45);
+  }
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg: #f3f0e8;
+      --bg-2: #ffffff;
+      --lane: #ffffff;
+      --lane-line: #ddd6c6;
+      --ink: #1b1f27;
+      --ink-dim: #5a6270;
+      --panel-border: #ddd6c6;
+      --shadow: rgba(20,20,10,.12);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg: #f3f0e8;
+    --bg-2: #ffffff;
+    --lane: #ffffff;
+    --lane-line: #ddd6c6;
+    --ink: #1b1f27;
+    --ink-dim: #5a6270;
+    --panel-border: #ddd6c6;
+    --shadow: rgba(20,20,10,.12);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height:100vh;
+    padding: 18px;
+  }
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* ---- Marquee header ---- */
+  .marquee{
+    background: linear-gradient(180deg, var(--bg-2), var(--bg));
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    display:flex;
+    flex-wrap: wrap;
+    align-items:center;
+    justify-content: space-between;
+    gap: 14px;
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+  .title{
+    display:flex; align-items:baseline; gap:10px;
+  }
+  .title h1{
+    font-size: 1.5rem;
+    margin: 0;
+    letter-spacing: .5px;
+    font-weight: 800;
+  }
+  .title h1 span{ color: var(--red); }
+  .title small{ color: var(--ink-dim); font-size: .8rem; }
+
+  .scoreboard{
+    display:flex; gap: 18px; align-items:center; flex-wrap: wrap;
+  }
+  .stat{ text-align:center; min-width: 64px; }
+  .stat .num{
+    font-family: "Courier New", monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--amber);
+    line-height:1;
+  }
+  .stat .lbl{ font-size: .68rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .06em; }
+  .lives{ display:flex; gap:4px; font-size:1.1rem; }
+  .life-off{ opacity:.25; filter: grayscale(1); }
+
+  /* ---- layout ---- */
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+  }
+  @media (max-width: 860px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .lane-card{
+    background: var(--lane);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 8px 24px var(--shadow);
+    min-height: 420px;
+    display:flex;
+    flex-direction:column;
+  }
+  .lane-top{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ball-queue{ display:flex; gap:8px; align-items:center; }
+  .ball{
+    width: 34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:.85rem;
+    background: radial-gradient(circle at 35% 30%, #4b5a72, #1a222d 70%);
+    color: var(--ink);
+    border: 2px solid var(--lane-line);
+  }
+  .ball.active{
+    background: radial-gradient(circle at 35% 30%, #ffdf7a, var(--amber) 70%);
+    color:#1a1400;
+    border-color: var(--amber);
+    box-shadow: 0 0 12px var(--amber);
+  }
+  .ball.spent{ opacity:.3; }
+
+  svg.tree-svg{ width:100%; height:auto; flex:1; display:block; margin-top: 6px; }
+  .edge{ stroke: var(--lane-line); stroke-width: 3; }
+  .node-circle{ stroke-width: 3; transition: stroke .2s, r .15s; }
+  .node-circle.red{ fill: var(--red); stroke: var(--red-dark); }
+  .node-circle.black{ fill: var(--black-pin); stroke: var(--black-pin-edge); }
+  .node-text{ fill: #fff; font-weight:700; font-size: 15px; text-anchor:middle; dominant-baseline: central; pointer-events:none; }
+  .hl-current{ stroke: var(--amber) !important; stroke-width:5; filter: drop-shadow(0 0 6px var(--amber)); }
+  .hl-parent{ stroke: #4da3ff !important; stroke-width:5; }
+  .hl-grandparent{ stroke: #b17bff !important; stroke-width:5; }
+  .hl-uncle{ stroke: var(--green) !important; stroke-width:5; }
+  .tag{
+    font-size: 10px; font-weight:700; text-anchor:middle;
+  }
+  .tag-current{ fill: var(--amber); }
+  .tag-parent{ fill: #4da3ff; }
+  .tag-grandparent{ fill: #b17bff; }
+  .tag-uncle{ fill: var(--green); }
+
+  .empty-lane{
+    flex:1; display:flex; align-items:center; justify-content:center;
+    color: var(--ink-dim); font-size: .95rem; text-align:center; padding: 30px;
+  }
+
+  /* ---- side panel ---- */
+  .panel{
+    background: var(--bg-2);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 8px 24px var(--shadow);
+    display:flex; flex-direction:column; gap: 12px;
+    min-height: 420px;
+  }
+  .panel h2{ margin:0; font-size: 1rem; }
+  .msg{
+    font-size: .9rem; line-height:1.45; color: var(--ink-dim);
+    min-height: 40px;
+  }
+  .msg strong{ color: var(--ink); }
+
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    padding: 12px 14px; border-radius: 8px;
+    font-size: .92rem; font-weight:700;
+    background: var(--lane-line); color: var(--ink);
+    transition: transform .08s, filter .15s;
+  }
+  .btn:hover{ filter: brightness(1.15); }
+  .btn:active{ transform: scale(.97); }
+  .btn:disabled{ opacity:.4; cursor:default; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .btn-primary{ background: var(--amber); color:#1a1400; }
+  .btn-left{ background:#2c3a52; color:#dce8ff; flex:1; }
+  .btn-right{ background:#2c3a52; color:#dce8ff; flex:1; }
+  .btn-recolor{ background: var(--green); color:#062b12; flex:1; }
+  .btn-rotate{ background: #7a5cff; color:#f4f0ff; flex:1; }
+
+  .timerbar{ height:6px; border-radius:3px; background: var(--lane-line); overflow:hidden; }
+  .timerbar > div{ height:100%; background: var(--red); width:100%; }
+
+  .rules{
+    border-top: 1px solid var(--panel-border);
+    padding-top: 10px;
+    font-size: .78rem;
+    color: var(--ink-dim);
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .rules b{ color: var(--ink); }
+
+  .combo{
+    display:flex; justify-content:space-between; align-items:center;
+    background: var(--lane);
+    border: 1px dashed var(--panel-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: .82rem;
+  }
+  .combo b{ color: var(--amber); font-family:"Courier New", monospace; font-size:1rem; }
+
+  /* ---- overlay ---- */
+  .overlay{
+    position: fixed; inset:0; background: rgba(6,8,11,.82);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 50; padding: 20px;
+  }
+  .overlay-card{
+    background: var(--bg-2); border:1px solid var(--panel-border);
+    border-radius: 14px; padding: 28px; max-width: 420px; text-align:center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .overlay-card h2{ margin-top:0; font-size:1.4rem; }
+  .overlay-card p{ color: var(--ink-dim); font-size:.92rem; line-height:1.5; }
+  .hidden{ display:none !important; }
+
+  footer.note{
+    text-align:center; color: var(--ink-dim); font-size: .74rem; padding: 6px 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="marquee">
+    <div class="title">
+      <h1>🎳 Red-Black <span>Bowling</span></h1>
+      <small>cada bola é um nó — cada acerto exige uma decisão de rebalanceamento</small>
+    </div>
+    <div class="scoreboard">
+      <div class="stat">
+        <div class="num" id="statScore">0</div>
+        <div class="lbl">Pontos</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="statRound">1/5</div>
+        <div class="lbl">Rodada</div>
+      </div>
+      <div class="stat">
+        <div class="lives" id="statLives">❤️❤️❤️</div>
+        <div class="lbl">Vidas</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="statRecord">0</div>
+        <div class="lbl">Recorde</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="lane-card">
+      <div class="lane-top">
+        <div class="ball-queue" id="ballQueue"></div>
+        <button class="btn btn-primary" id="btnLancar">🎳 Lançar bola</button>
+      </div>
+      <svg class="tree-svg" id="treeSvg" viewBox="0 0 600 360" preserveAspectRatio="xMidYMin meet"></svg>
+      <div class="empty-lane" id="emptyLane">A pista está vazia. Lance a primeira bola para começar a construir a Árvore Rubro-Negra de pinos!</div>
+    </div>
+
+    <div class="panel">
+      <h2 id="panelTitle">Status</h2>
+      <div class="msg" id="panelMsg">Toque em <strong>Lançar bola</strong> para inserir o primeiro pino. Cada bola entra sempre como um pino <strong style="color:var(--red)">vermelho</strong>.</div>
+
+      <div id="controlArea"></div>
+
+      <div class="combo">
+        <span>Altura-preta atual → multiplicador de Strike</span>
+        <b id="comboVal">h=1 → ×1</b>
+      </div>
+
+      <div class="rules">
+        <div><b>1. Cores:</b> todo nó é vermelho ou preto.</div>
+        <div><b>2. Sem vermelho-vermelho:</b> um pino vermelho nunca pode ter filho vermelho.</div>
+        <div><b>3. Altura-preta:</b> todo caminho da raiz até uma folha tem o mesmo nº de pinos pretos.</div>
+        <div><b>4. Correção:</b> tio vermelho → <span style="color:var(--green)">recolorir</span>; tio preto/nulo → <span style="color:#a68bff">rotacionar</span>.</div>
+      </div>
+    </div>
+  </div>
+  <footer class="note">Baseado no jogo de "Red-Black Bowling" — decisão algorítmica de Recolorir vs. Rotação em cada conflito.</footer>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="overlay-card">
+    <h2 id="overlayTitle">Fim de jogo</h2>
+    <p id="overlayText"></p>
+    <button class="btn btn-primary" id="btnRestart">Jogar novamente</button>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // ---------------- Tree model ----------------
+  function Node(value){
+    this.value = value;
+    this.color = 'red';
+    this.left = null;
+    this.right = null;
+    this.parent = null;
+  }
+
+  function rotateLeft(tree, x){
+    const y = x.right;
+    x.right = y.left;
+    if (y.left) y.left.parent = x;
+    y.parent = x.parent;
+    if (!x.parent) tree.root = y;
+    else if (x === x.parent.left) x.parent.left = y;
+    else x.parent.right = y;
+    y.left = x;
+    x.parent = y;
+  }
+  function rotateRight(tree, x){
+    const y = x.left;
+    x.left = y.right;
+    if (y.right) y.right.parent = x;
+    y.parent = x.parent;
+    if (!x.parent) tree.root = y;
+    else if (x === x.parent.right) x.parent.right = y;
+    else x.parent.left = y;
+    y.right = x;
+    x.parent = y;
+  }
+
+  function blackHeight(root){
+    let n = root, count = 0;
+    while (n){ if (n.color === 'black') count++; n = n.left; }
+    return count + 1; // count the null leaf as black
+  }
+
+  // Generator that walks through BST navigation + RB fixup, yielding decision points.
+  function* insertWithSteps(tree, value){
+    let parent = null;
+    let cur = tree.root;
+    while (cur){
+      parent = cur;
+      const correctDir = value < cur.value ? 'left' : 'right';
+      yield { type:'navigate', node: cur, value, correctDir };
+      cur = correctDir === 'left' ? cur.left : cur.right;
+    }
+    const z = new Node(value);
+    z.parent = parent;
+    if (!parent) tree.root = z;
+    else if (value < parent.value) parent.left = z;
+    else parent.right = z;
+
+    yield { type:'inserted', node: z };
+
+    let n = z;
+    while (n.parent && n.parent.color === 'red'){
+      const parentN = n.parent;
+      const gp = parentN.parent; // exists because root is always black
+      if (parentN === gp.left){
+        const uncle = gp.right;
+        if (uncle && uncle.color === 'red'){
+          yield { type:'decision', node:n, parent:parentN, grandparent:gp, uncle, correctAction:'recolor' };
+          parentN.color = 'black';
+          uncle.color = 'black';
+          gp.color = 'red';
+          n = gp;
+        } else {
+          yield { type:'decision', node:n, parent:parentN, grandparent:gp, uncle, correctAction:'rotate' };
+          let z2 = n;
+          if (z2 === parentN.right){
+            z2 = parentN;
+            rotateLeft(tree, z2);
+          }
+          z2.parent.color = 'black';
+          gp.color = 'red';
+          rotateRight(tree, gp);
+          n = z2;
+        }
+      } else {
+        const uncle = gp.left;
+        if (uncle && uncle.color === 'red'){
+          yield { type:'decision', node:n, parent:parentN, grandparent:gp, uncle, correctAction:'recolor' };
+          parentN.color = 'black';
+          uncle.color = 'black';
+          gp.color = 'red';
+          n = gp;
+        } else {
+          yield { type:'decision', node:n, parent:parentN, grandparent:gp, uncle, correctAction:'rotate' };
+          let z2 = n;
+          if (z2 === parentN.left){
+            z2 = parentN;
+            rotateRight(tree, z2);
+          }
+          z2.parent.color = 'black';
+          gp.color = 'red';
+          rotateLeft(tree, gp);
+          n = z2;
+        }
+      }
+    }
+    tree.root.color = 'black';
+    yield { type:'done' };
+  }
+
+  // ---------------- Game state ----------------
+  let tree = { root: null };
+  let balls = [];
+  let ballIndex = 0;
+  let lives = 3;
+  let score = 0;
+  let gen = null;
+  let mistakesThisBall = 0;
+  let timerHandle = null;
+  let busy = false;
+  let highScore = 0;
+
+  try {
+    const saved = localStorage.getItem('rbb_highscore');
+    if (saved) highScore = parseInt(saved, 10) || 0;
+  } catch(e){}
+
+  const el = {
+    score: document.getElementById('statScore'),
+    round: document.getElementById('statRound'),
+    lives: document.getElementById('statLives'),
+    record: document.getElementById('statRecord'),
+    ballQueue: document.getElementById('ballQueue'),
+    btnLancar: document.getElementById('btnLancar'),
+    svg: document.getElementById('treeSvg'),
+    emptyLane: document.getElementById('emptyLane'),
+    panelTitle: document.getElementById('panelTitle'),
+    panelMsg: document.getElementById('panelMsg'),
+    controlArea: document.getElementById('controlArea'),
+    comboVal: document.getElementById('comboVal'),
+    overlay: document.getElementById('overlay'),
+    overlayTitle: document.getElementById('overlayTitle'),
+    overlayText: document.getElementById('overlayText'),
+    btnRestart: document.getElementById('btnRestart'),
+  };
+
+  function generateBalls(){
+    const set = new Set();
+    while (set.size < 5) set.add(1 + Math.floor(Math.random() * 89));
+    return Array.from(set);
+  }
+
+  function updateScoreboard(){
+    el.score.textContent = score;
+    el.round.textContent = Math.min(ballIndex + 1, 5) + '/5';
+    el.record.textContent = highScore;
+    let hearts = '';
+    for (let i = 0; i < 3; i++) hearts += `<span class="${i < lives ? '' : 'life-off'}">❤️</span>`;
+    el.lives.innerHTML = hearts;
+
+    el.ballQueue.innerHTML = '';
+    balls.forEach((b, i) => {
+      const d = document.createElement('div');
+      d.className = 'ball' + (i === ballIndex ? ' active' : '') + (i < ballIndex ? ' spent' : '');
+      d.textContent = b;
+      el.ballQueue.appendChild(d);
+    });
+
+    const bh = tree.root ? blackHeight(tree.root) : 1;
+    el.comboVal.textContent = `h=${bh} → ×${bh}`;
+  }
+
+  // ---------------- Rendering ----------------
+  function computeLayout(root){
+    const positions = new Map();
+    let x = 0;
+    let maxDepth = 0;
+    (function inorder(node, depth){
+      if (!node) return;
+      inorder(node.left, depth + 1);
+      positions.set(node, { xi: x++, depth });
+      maxDepth = Math.max(maxDepth, depth);
+      inorder(node.right, depth + 1);
+    })(root, 0);
+    return { positions, count: x, maxDepth };
+  }
+
+  function renderTree(highlight){
+    highlight = highlight || {};
+    const svg = el.svg;
+    svg.innerHTML = '';
+
+    if (!tree.root){
+      el.emptyLane.classList.remove('hidden');
+      svg.classList.add('hidden');
+      return;
+    }
+    el.emptyLane.classList.add('hidden');
+    svg.classList.remove('hidden');
+
+    const { positions, count, maxDepth } = computeLayout(tree.root);
+    const spacingX = 66, spacingY = 84, marginX = 40, marginY = 34;
+    const width = Math.max(320, marginX * 2 + (count - 1) * spacingX);
+    const height = marginY * 2 + maxDepth * spacingY + 30;
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    function px(node){
+      const p = positions.get(node);
+      return { x: marginX + p.xi * spacingX, y: marginY + p.depth * spacingY };
+    }
+
+    const ns = 'http://www.w3.org/2000/svg';
+    // edges first
+    positions.forEach((_, node) => {
+      if (node.parent){
+        const a = px(node), b = px(node.parent);
+        const line = document.createElementNS(ns, 'line');
+        line.setAttribute('x1', b.x); line.setAttribute('y1', b.y);
+        line.setAttribute('x2', a.x); line.setAttribute('y2', a.y);
+        line.setAttribute('class', 'edge');
+        svg.appendChild(line);
+      }
+    });
+    // nodes
+    positions.forEach((_, node) => {
+      const p = px(node);
+      const g = document.createElementNS(ns, 'g');
+
+      const circle = document.createElementNS(ns, 'circle');
+      circle.setAttribute('cx', p.x);
+      circle.setAttribute('cy', p.y);
+      circle.setAttribute('r', 22);
+      let cls = 'node-circle ' + node.color;
+      if (highlight.current === node) cls += ' hl-current';
+      else if (highlight.parent === node) cls += ' hl-parent';
+      else if (highlight.grandparent === node) cls += ' hl-grandparent';
+      else if (highlight.uncle === node) cls += ' hl-uncle';
+      circle.setAttribute('class', cls);
+      g.appendChild(circle);
+
+      const text = document.createElementNS(ns, 'text');
+      text.setAttribute('x', p.x);
+      text.setAttribute('y', p.y);
+      text.setAttribute('class', 'node-text');
+      text.textContent = node.value;
+      g.appendChild(text);
+
+      let tagText = null, tagClass = '';
+      if (highlight.current === node){ tagText = 'BOLA'; tagClass = 'tag-current'; }
+      else if (highlight.parent === node){ tagText = 'PAI'; tagClass = 'tag-parent'; }
+      else if (highlight.grandparent === node){ tagText = 'AVÔ'; tagClass = 'tag-grandparent'; }
+      else if (highlight.uncle === node){ tagText = 'TIO'; tagClass = 'tag-uncle'; }
+      if (tagText){
+        const tag = document.createElementNS(ns, 'text');
+        tag.setAttribute('x', p.x);
+        tag.setAttribute('y', p.y - 32);
+        tag.setAttribute('class', 'tag ' + tagClass);
+        tag.setAttribute('text-anchor', 'middle');
+        tag.textContent = tagText;
+        g.appendChild(tag);
+      }
+
+      svg.appendChild(g);
+    });
+  }
+
+  // ---------------- Flow control ----------------
+  function clearControls(){
+    el.controlArea.innerHTML = '';
+    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+  }
+
+  function setMsg(title, html){
+    el.panelTitle.textContent = title;
+    el.panelMsg.innerHTML = html;
+  }
+
+  function loseLife(reason){
+    lives--;
+    mistakesThisBall++;
+    updateScoreboard();
+    setMsg('❌ Vida perdida!', reason + (lives > 0 ? ' <strong>Vidas restantes: ' + lives + '</strong>' : ''));
+    if (lives <= 0){
+      setTimeout(triggerGameOver, 500);
+      return true;
+    }
+    return false;
+  }
+
+  function processStep(result){
+    if (result.done){ return; }
+    const step = result.value;
+
+    if (step.type === 'navigate'){
+      renderTree({ current: step.node });
+      showNavigateUI(step);
+    } else if (step.type === 'inserted'){
+      renderTree({ current: step.node });
+      setMsg('🎳 Pino inserido!', `A bola virou um pino <strong style="color:var(--red)">vermelho</strong> no valor <strong>${step.node.value}</strong>. Toda inserção na Rubro-Negra entra vermelha — verificando se há conflito com o pai...`);
+      busy = true;
+      setTimeout(() => processStep(gen.next()), 900);
+    } else if (step.type === 'decision'){
+      renderTree({ current: step.node, parent: step.parent, grandparent: step.grandparent, uncle: step.uncle });
+      showDecisionUI(step);
+    } else if (step.type === 'done'){
+      renderTree();
+      busy = true;
+      setTimeout(onBallComplete, 700);
+    }
+  }
+
+  function showNavigateUI(step){
+    busy = false;
+    setMsg('🎯 Escolha o ramo', `A bola vale <strong>${step.value}</strong>. Comparando com o pino <strong>${step.node.value}</strong>: para qual lado ela deve ir numa Árvore de Busca Binária?`);
+    clearControls();
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    const bLeft = document.createElement('button');
+    bLeft.className = 'btn btn-left';
+    bLeft.textContent = `⬅️ Esquerda (< ${step.node.value})`;
+    const bRight = document.createElement('button');
+    bRight.className = 'btn btn-right';
+    bRight.textContent = `➡️ Direita (> ${step.node.value})`;
+    bLeft.onclick = () => chooseDirection('left', step);
+    bRight.onclick = () => chooseDirection('right', step);
+    row.appendChild(bLeft); row.appendChild(bRight);
+    el.controlArea.appendChild(row);
+  }
+
+  function chooseDirection(dir, step){
+    if (busy) return;
+    busy = true;
+    clearControls();
+    if (dir !== step.correctDir){
+      const ended = loseLife(`Ramo errado! ${step.value} ${step.value < step.node.value ? 'é menor' : 'é maior'} que ${step.node.value}, então deveria ir para ${step.correctDir === 'left' ? 'esquerda' : 'direita'}.`);
+      if (ended) return;
+    } else {
+      setMsg('✅ Ramo correto!', `Beleza, ${step.value} realmente vai para o lado ${dir === 'left' ? 'esquerdo' : 'direito'}.`);
+    }
+    setTimeout(() => processStep(gen.next()), 700);
+  }
+
+  function showDecisionUI(step){
+    busy = false;
+    const uncleDesc = step.uncle ? (step.uncle.color === 'red' ? 'vermelho' : 'preto') : 'nulo (preto)';
+    setMsg('🚨 Conflito vermelho-vermelho!', `O pino <strong>${step.node.value}</strong> e seu pai <strong>${step.parent.value}</strong> são os dois vermelhos — isso viola a Propriedade 2! Olhe a cor do <strong>Tio</strong> (destacado em verde): ele está <strong>${uncleDesc}</strong>. O que fazer?`);
+    clearControls();
+
+    const bar = document.createElement('div');
+    bar.className = 'timerbar';
+    const fill = document.createElement('div');
+    bar.appendChild(fill);
+    el.controlArea.appendChild(bar);
+
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    row.style.marginTop = '10px';
+    const bRecolor = document.createElement('button');
+    bRecolor.className = 'btn btn-recolor';
+    bRecolor.textContent = '🎨 Recolorir';
+    const bRotate = document.createElement('button');
+    bRotate.className = 'btn btn-rotate';
+    bRotate.textContent = '🔄 Fazer Rotação';
+    bRecolor.onclick = () => chooseAction('recolor', step);
+    bRotate.onclick = () => chooseAction('rotate', step);
+    row.appendChild(bRecolor); row.appendChild(bRotate);
+    el.controlArea.appendChild(row);
+
+    let elapsed = 0;
+    const totalMs = 5000, stepMs = 100;
+    timerHandle = setInterval(() => {
+      elapsed += stepMs;
+      const pct = Math.max(0, 100 - (elapsed / totalMs) * 100);
+      fill.style.width = pct + '%';
+      if (elapsed >= totalMs){
+        clearInterval(timerHandle); timerHandle = null;
+        chooseAction('timeout', step);
+      }
+    }, stepMs);
+  }
+
+  function chooseAction(action, step){
+    if (busy) return;
+    busy = true;
+    clearControls();
+    const uncleDesc = step.uncle ? (step.uncle.color === 'red' ? 'vermelho' : 'preto') : 'nulo (preto)';
+    if (action !== step.correctAction){
+      const correctLabel = step.correctAction === 'recolor' ? 'Recolorir (tio vermelho)' : 'Fazer Rotação (tio preto/nulo)';
+      const ended = loseLife(`Ação errada! Como o tio é ${uncleDesc}, a ação correta era: <strong>${correctLabel}</strong>.`);
+      if (ended) return;
+    } else {
+      const bonus = step.correctAction === 'recolor' ? 15 : 25;
+      score += bonus;
+      setMsg('✅ Ação correta!', `${step.correctAction === 'recolor' ? 'Recolorir' : 'Rotacionar'} era mesmo o certo, já que o tio é ${uncleDesc}. +${bonus} pontos.`);
+      updateScoreboard();
+    }
+    setTimeout(() => processStep(gen.next()), 900);
+  }
+
+  function onBallComplete(){
+    const bh = blackHeight(tree.root);
+    const base = mistakesThisBall === 0 ? 100 : 40;
+    const gained = base * bh;
+    score += gained;
+    updateScoreboard();
+    setMsg('🎉 Pino equilibrado!', `A árvore ficou balanceada novamente. Altura-preta = ${bh} → +${gained} pontos${mistakesThisBall === 0 ? ' (bola perfeita, sem erros!)' : ''}.`);
+
+    ballIndex++;
+    busy = false;
+    if (ballIndex >= balls.length){
+      setTimeout(triggerVictory, 900);
+    } else {
+      updateScoreboard();
+      el.btnLancar.disabled = false;
+      el.btnLancar.textContent = '🎳 Lançar próxima bola';
+    }
+  }
+
+  function startBall(){
+    if (busy) return;
+    if (ballIndex >= balls.length) return;
+    el.btnLancar.disabled = true;
+    mistakesThisBall = 0;
+    const value = balls[ballIndex];
+    gen = insertWithSteps(tree, value);
+    setMsg('🎳 Bola lançada!', `Valor <strong>${value}</strong> em jogo.`);
+    processStep(gen.next());
+  }
+
+  function triggerGameOver(){
+    clearControls();
+    el.btnLancar.disabled = true;
+    if (score > highScore){
+      highScore = score;
+      try { localStorage.setItem('rbb_highscore', String(highScore)); } catch(e){}
+    }
+    updateScoreboard();
+    el.overlayTitle.textContent = '💥 A pista desmoronou!';
+    el.overlayText.textContent = `As violações da Rubro-Negra não foram corrigidas a tempo e a árvore degenerou. Pontuação final: ${score}.`;
+    el.overlay.classList.remove('hidden');
+  }
+
+  function triggerVictory(){
+    clearControls();
+    el.btnLancar.disabled = true;
+    if (score > highScore){
+      highScore = score;
+      try { localStorage.setItem('rbb_highscore', String(highScore)); } catch(e){}
+    }
+    updateScoreboard();
+    el.overlayTitle.textContent = '🏆 Strike perfeito!';
+    el.overlayText.textContent = `Você posicionou e balanceou as 5 bolas mantendo todas as propriedades da Árvore Rubro-Negra! Pontuação final: ${score}.`;
+    el.overlay.classList.remove('hidden');
+  }
+
+  function resetGame(){
+    tree = { root: null };
+    balls = generateBalls();
+    ballIndex = 0;
+    lives = 3;
+    score = 0;
+    mistakesThisBall = 0;
+    busy = false;
+    el.overlay.classList.add('hidden');
+    el.btnLancar.disabled = false;
+    el.btnLancar.textContent = '🎳 Lançar bola';
+    setMsg('Status', 'Toque em <strong>Lançar bola</strong> para inserir o primeiro pino. Cada bola entra sempre como um pino <strong style="color:var(--red)">vermelho</strong>.');
+    clearControls();
+    renderTree();
+    updateScoreboard();
+  }
+
+  el.btnLancar.addEventListener('click', startBall);
+  el.btnRestart.addEventListener('click', resetGame);
+
+  resetGame();
+})();
+</script>
+</body>
+</html>
