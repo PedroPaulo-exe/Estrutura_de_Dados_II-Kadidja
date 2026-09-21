@@ -292,7 +292,7 @@ Neste projeto, a estrutura escolhida foi a **Árvore Rubro-Negra**, e seus conce
 
 ## 👥 Integrantes
 
-**Nome:** Pedro Paulo
+**Nome:** Pedro Paulo Rodrigues Cardoso, Tiago Alves Freire, Júlia Barreira de Carvalho, Guilherme Brito da Silva, Alísio Veleda Tavazes Neto, Giovanna Nascimento Lima, isablea Cristina Araujo
 
 **Disciplina:** Estruturas de Dados II
 
