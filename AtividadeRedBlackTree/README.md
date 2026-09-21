@@ -1,5 +1,7 @@
 # 🎳 Red-Black Bowling
 
+O jogo se baseia no site https://ds2-iiith.vlabs.ac.in/exp/red-black-tree/red-black-tree-oprations/simulation/redblack.html
+
 **Jogo educativo sobre Árvores Rubro-Negras**
 Projeto desenvolvido para a disciplina de **Estruturas de Dados II — Ciência da Computação**.
 
