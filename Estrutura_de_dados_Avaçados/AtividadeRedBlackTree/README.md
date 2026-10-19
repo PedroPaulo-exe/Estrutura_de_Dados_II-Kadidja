@@ -1,21 +1,22 @@
 # 🎳 Red-Black Bowling
 
-O jogo se baseia na ferramenta interativa de simulação de Árvores Rubro-Negras do **Virtual Labs**, desenvolvida pelo **IIIT Hyderabad** (International Institute of Information Technology, Hyderabad, Índia), disponível em:  
-🔗 [https://ds2-iiith.vlabs.ac.in/exp/red-black-tree/red-black-tree-oprations/simulation/redblack.html](https://ds2-iiith.vlabs.ac.in/exp/red-black-tree/red-black-tree-oprations/simulation/redblack.html)
-**Jogo educativo sobre Árvores Rubro-Negras**
-Projeto desenvolvido para a disciplina de **Estruturas de Dados II — Ciência da Computação**.
+O **Red-Black Bowling** é um jogo educativo voltado para o ensino de **Árvores Rubro-Negras**, desenvolvido para a disciplina de **Estruturas de Dados II** do curso de Ciência da Computação.
 
-## 📖 Sobre o projeto
-
-O **Red-Black Bowling** é um jogo educativo desenvolvido para transformar conceitos de **Árvores Rubro-Negras** em uma experiência interativa.
-
-A ideia do projeto é utilizar uma mecânica inspirada em boliche: cada bola representa um novo valor que precisa ser inserido na árvore. Durante a partida, o jogador precisa tomar decisões relacionadas à inserção e ao balanceamento da estrutura.
-
-O jogo foi desenvolvido a partir da proposta de **engenharia reversa e reuso de modelos**, utilizando como referência a ideia de ferramentas e jogos educativos de estruturas de dados e adaptando essa abordagem para criar uma mecânica na qual o jogador participa ativamente do processo de balanceamento.
-
-Essa abordagem está alinhada à atividade proposta, que solicita a identificação de um modelo existente e a criação de um upgrade funcional ou pedagógico utilizando uma estrutura avançada de Estruturas de Dados II.
+O projeto tem como referência o simulador interativo de Árvores Rubro-Negras do **Virtual Labs**, desenvolvido pelo **IIIT Hyderabad** (*International Institute of Information Technology, Hyderabad, Índia*), acessível em:  
+🔗 [Simulador Virtual Labs - IIIT Hyderabad](https://ds2-iiith.vlabs.ac.in/exp/red-black-tree/red-black-tree-oprations/simulation/redblack.html)
 
 ---
+
+## 📖 Sobre o Projeto
+
+O objetivo principal do **Red-Black Bowling** é transformar conceitos teóricos e complexos de Árvores Rubro-Negras em uma experiência dinâmica e interativa. 
+
+Para isso, o jogo emprega uma mecânica temática inspirada no boliche: cada bola lançada representa um novo valor que deve ser inserido na árvore. Durante a partida, o jogador abandona a posição passiva de mero observador e assume o controle ativo das decisões de inserção, verificação de conflitos e rebalanceamento da estrutura.
+
+### Engenharia Reversa e Inovação Pedagógica
+O desenvolvimento partiu de uma proposta de engenharia reversa e reuso de modelos a partir de ferramentas educacionais existentes (como o visualizador do *IIIT Hyderabad*). 
+
+Enquanto os simuladores tradicionais realizam as operações de forma automatizada — onde o usuário apenas assiste à construção —, o Red-Black Bowling introduz um **upgrade funcional e pedagógico**: o jogador precisa analisar ativamente os casos de conflito (como a cor do tio), escolher entre recoloração e rotação, e aplicar as regras fundamentais da estrutura para garantir que a árvore permaneça balanceada e válida.
 
 ## 🎯 Objetivo
 
