@@ -1,3 +1,15 @@
+## 👥 Integrantes
+
+**Nome:** Pedro Paulo Rodrigues Cardoso, Tiago Alves Freire, Júlia Barreira de Carvalho, Guilherme Brito da Silva, Aluísio Veleda Tavares Neto, Giovanna Nascimento Lima, isabela Cristina Araujo
+
+**Disciplina:** Estruturas de Dados II
+
+**Curso:** Ciência da Computação
+
+**Professora:** Kadja
+
+**Ano:** 2026
+
 # 🎳 Red-Black Bowling
 
 O **Red-Black Bowling** é um jogo educativo voltado para o ensino de **Árvores Rubro-Negras**, desenvolvido para a disciplina de **Estruturas de Dados II** do curso de Ciência da Computação.
