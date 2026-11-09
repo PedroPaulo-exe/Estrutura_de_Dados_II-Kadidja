@@ -1,6 +1,14 @@
 ## 👥 Integrantes
 
-**Nome:** Pedro Paulo Rodrigues Cardoso, Tiago Alves Freire, Júlia Barreira de Carvalho, Guilherme Brito da Silva, Aluísio Veleda Tavares Neto, Giovanna Nascimento Lima, isabela Cristina Araujo
+| Integrante | GitHub |
+| ---------- | ------ |
+| Pedro Paulo Rodrigues Cardoso | [PedroPaulo-exe](https://github.com/PedroPaulo-exe/Estrutura_de_Dados_II-Kadidja) |
+| Tiago Alves Freire | [tiggofreire](https://github.com/tiggofreire/estrutura-de-dados-II) |
+| Júlia Barreira de Carvalho | [Julia-BarCar](https://github.com/Julia-BarCar/Estrutura-de-Dados-II) |
+| Guilherme Brito da Silva | [Guilhermoviski](https://github.com/Guilhermoviski/estrutura-de-dados-II) |
+| Aluísio Veleda Tavares Neto | [aloisiodev-byt](https://github.com/aloisiodev-byt/Estrutura-de-Dados-II) |
+| Giovanna Nascimento Lima | [giovannalima19](https://github.com/giovannalima19/Estrutura_de_dados_II) |
+| Isabela Cristina Araujo | [isawott](https://github.com/isawott/estruturas-dados-II) |
 
 **Disciplina:** Estruturas de Dados II
 
@@ -305,7 +313,15 @@ Neste projeto, a estrutura escolhida foi a **Árvore Rubro-Negra**, e seus conce
 
 ## 👥 Integrantes
 
-**Nome:** Pedro Paulo Rodrigues Cardoso, Tiago Alves Freire, Júlia Barreira de Carvalho, Guilherme Brito da Silva, Aluísio Veleda Tavares Neto, Giovanna Nascimento Lima, isabela Cristina Araujo
+| Integrante | GitHub |
+| ---------- | ------ |
+| Pedro Paulo Rodrigues Cardoso | [PedroPaulo-exe](https://github.com/PedroPaulo-exe/Estrutura_de_Dados_II-Kadidja) |
+| Tiago Alves Freire | [tiggofreire](https://github.com/tiggofreire/estrutura-de-dados-II) |
+| Júlia Barreira de Carvalho | [Julia-BarCar](https://github.com/Julia-BarCar/Estrutura-de-Dados-II) |
+| Guilherme Brito da Silva | [Guilhermoviski](https://github.com/Guilhermoviski/estrutura-de-dados-II) |
+| Aluísio Veleda Tavares Neto | [aloisiodev-byt](https://github.com/aloisiodev-byt/Estrutura-de-Dados-II) |
+| Giovanna Nascimento Lima | [giovannalima19](https://github.com/giovannalima19/Estrutura_de_dados_II) |
+| Isabela Cristina Araujo | [isawott](https://github.com/isawott/estruturas-dados-II) |
 
 **Disciplina:** Estruturas de Dados II
 
